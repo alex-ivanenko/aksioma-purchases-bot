@@ -17,7 +17,7 @@ airtable_client = AirtableClient()
 main_kb = ReplyKeyboardMarkup(
     keyboard=[[KeyboardButton(text="Добавить покупку")]],
     resize_keyboard=True,
-    one_time_keyboard=True  # Скроется после нажатия
+    one_time_keyboard=True
 )
 
 # Клавиатура с кнопкой "Отмена" — во время диалога
@@ -28,13 +28,13 @@ cancel_kb = ReplyKeyboardMarkup(
 )
 
 # Фильтр: только для авторизованных пользователей
-def is_authorized(message: Message) -> bool:
-    return message.from_user.id in AUTHORIZED_USERS
+def is_authorized(user) -> bool:
+    return user.id in AUTHORIZED_USERS
 
 # Команда /start — только приветствие
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    if not is_authorized(message):
+    if not is_authorized(message.from_user):
         await message.answer("У вас нет доступа к этому боту")
         return
     await message.answer(
@@ -45,7 +45,7 @@ async def cmd_start(message: Message):
 # Обработчик кнопки "Добавить покупку"
 @router.message(F.text == "Добавить покупку")
 async def start_purchase_flow(message: Message, state: FSMContext):
-    if not is_authorized(message):
+    if not is_authorized(message.from_user):
         await message.answer("У вас нет доступа к этому боту")
         return
     await message.answer("Введите наименование:", reply_markup=cancel_kb)
@@ -88,7 +88,7 @@ async def process_quantity(message: Message, state: FSMContext):
         return
 
     await state.update_data(quantity=quantity)
-    await message.answer("Введите примечание:", reply_markup=cancel_kb)
+    await message.answer("Введите примечание (можно пропустить):", reply_markup=cancel_kb)
     await state.set_state(PurchaseForm.note)
 
 # Обработчик примечания — опционально + отправка в Airtable
@@ -100,19 +100,28 @@ async def process_note(message: Message, state: FSMContext):
     data = await state.get_data()
 
     try:
+        # Получаем имя отправителя: first_name + last_name
+        user = message.from_user
+        sender_name = user.first_name
+        if user.last_name:
+            sender_name += " " + user.last_name
+
+        # Отправляем в Airtable с полем "Отправитель"
         await airtable_client.create_record({
             "Наименование": data['name'],
             "Количество": data['quantity'],
-            "Примечание": data['note']
+            "Примечание": data['note'],
+            "Отправитель": sender_name  # ← Добавлено!
         })
 
         await message.answer(
             f"Данные приняты:\n"
             f"Наименование: {data['name']}\n"
             f"Количество: {data['quantity']}\n"
-            f"Примечание: {data['note']}\n\n"
-            f"Запись добавлена в Airtable",
-            reply_markup=main_kb  # ← Кнопка возвращается!
+            f"Примечание: {data['note']}\n"
+            f"Отправитель: {sender_name}\n\n"
+            f"Запись добавлена в Airtable.",
+            reply_markup=main_kb
         )
 
     except Exception as e:
@@ -123,5 +132,5 @@ async def process_note(message: Message, state: FSMContext):
 # Обработчик для неавторизованных
 @router.message()
 async def unauthorized(message: Message):
-    if not is_authorized(message):
+    if not is_authorized(message.from_user):
         await message.answer("У вас нет доступа к этому боту")
