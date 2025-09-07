@@ -27,6 +27,16 @@ cancel_kb = ReplyKeyboardMarkup(
     one_time_keyboard=True
 )
 
+# Клавиатура для шага "Примечание" — с кнопкой "Пропустить" и "Отмена"
+skip_cancel_kb = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="Пропустить")],
+        [KeyboardButton(text="Отмена")]
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=True
+)
+
 # Фильтр: только для авторизованных пользователей
 def is_authorized(user) -> bool:
     return user.id in AUTHORIZED_USERS
@@ -48,7 +58,7 @@ async def start_purchase_flow(message: Message, state: FSMContext):
     if not is_authorized(message.from_user):
         await message.answer("У вас нет доступа к этому боту")
         return
-    await message.answer("Введите наименование:", reply_markup=cancel_kb)
+    await message.answer("Введите наименование", reply_markup=cancel_kb)
     await state.set_state(PurchaseForm.name)
 
 # Команда /cancel — сброс диалога
@@ -71,7 +81,7 @@ async def btn_cancel(message: Message, state: FSMContext):
 @router.message(PurchaseForm.name, F.text)
 async def process_name(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
-    await message.answer("Введите количество:", reply_markup=cancel_kb)
+    await message.answer("Введите количество", reply_markup=cancel_kb)
     await state.set_state(PurchaseForm.quantity)
 
 # Обработчик количества — с валидацией
@@ -84,34 +94,34 @@ async def process_quantity(message: Message, state: FSMContext):
         if quantity <= 0:
             raise ValueError
     except ValueError:
-        await message.answer("Введите положительное число")
+        await message.answer("Пожалуйста, введите положительное число (например: 2.5)")
         return
 
     await state.update_data(quantity=quantity)
-    await message.answer("Введите примечание (можно пропустить):", reply_markup=cancel_kb)
+    await message.answer("Введите примечание или нажмите 'Пропустить'", reply_markup=skip_cancel_kb)
     await state.set_state(PurchaseForm.note)
 
-# Обработчик примечания — опционально + отправка в Airtable
-@router.message(PurchaseForm.note)
-async def process_note(message: Message, state: FSMContext):
-    note_text = message.text.strip() if message.text else "-"
+# Обработчик кнопки "Пропустить" на шаге примечания
+@router.message(PurchaseForm.note, F.text == "Пропустить")
+async def skip_note(message: Message, state: FSMContext):
+    # Сохраняем примечание как пустую строку
+    await state.update_data(note="")
 
-    await state.update_data(note=note_text)
     data = await state.get_data()
 
     try:
-        # Получаем имя отправителя: first_name + last_name
+        # Получаем имя отправителя
         user = message.from_user
         sender_name = user.first_name
         if user.last_name:
             sender_name += " " + user.last_name
 
-        # Отправляем в Airtable с полем "Отправитель"
+        # Отправляем в Airtable
         await airtable_client.create_record({
             "Наименование": data['name'],
             "Количество": data['quantity'],
-            "Примечание": data['note'],
-            "Отправитель": sender_name  # ← Добавлено!
+            "Примечание": data['note'],  # теперь это ""
+            "Отправитель": sender_name
         })
 
         await message.answer(
@@ -120,7 +130,44 @@ async def process_note(message: Message, state: FSMContext):
             f"Количество: {data['quantity']}\n"
             f"Примечание: {data['note']}\n"
             f"Отправитель: {sender_name}\n\n"
-            f"Запись добавлена в Airtable.",
+            f"Запись добавлена в Airtable",
+            reply_markup=main_kb
+        )
+
+    except Exception as e:
+        await message.answer(f"Ошибка при сохранении в Airtable:\n{str(e)}")
+
+    await state.clear()
+
+# Обработчик примечания — срабатывает, если текст НЕ "Пропустить"
+@router.message(PurchaseForm.note, F.text != "Пропустить")
+async def process_note(message: Message, state: FSMContext):
+    # Если сообщение есть — берём текст, иначе — пустая строка
+    note_text = message.text.strip() if message.text else ""
+
+    await state.update_data(note=note_text)
+    data = await state.get_data()
+
+    try:
+        user = message.from_user
+        sender_name = user.first_name
+        if user.last_name:
+            sender_name += " " + user.last_name
+
+        await airtable_client.create_record({
+            "Наименование": data['name'],
+            "Количество": data['quantity'],
+            "Примечание": data['note'],
+            "Отправитель": sender_name
+        })
+
+        await message.answer(
+            f"Данные приняты:\n"
+            f"Наименование: {data['name']}\n"
+            f"Количество: {data['quantity']}\n"
+            f"Примечание: {data['note']}\n"
+            f"Отправитель: {sender_name}\n\n"
+            f"Запись добавлена в Airtable",
             reply_markup=main_kb
         )
 
