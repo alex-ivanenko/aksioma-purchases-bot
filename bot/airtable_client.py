@@ -1,10 +1,13 @@
 # bot/airtable_client.py
 import httpx
 import asyncio
+import logging
 from datetime import datetime, timezone
 from typing import Dict, Any
 
 from .config import AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME
+
+logger = logging.getLogger(__name__)
 
 class AirtableClient:
     def __init__(self):
@@ -16,13 +19,8 @@ class AirtableClient:
 
     async def create_record(self, fields: Dict[str, Any]) -> Dict:
         """
-        Создаёт новую запись в Airtable.
-        Автоматически добавляет поле "Дата создания", если его нет.
+        Создаёт новую запись в Airtable с повторами при сетевых ошибках.
         """
-        # Удаляем "Дата создания", если вдруг передано — оно вычисляемое
-        if "Дата создания" in fields:
-            del fields["Дата создания"]  # Удаляем, если вдруг передано
-
         payload = {
             "records": [
                 {
@@ -31,27 +29,29 @@ class AirtableClient:
             ]
         }
 
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.post(self.base_url, json=payload, headers=self.headers)
-                response.raise_for_status()
-                return response.json()
-
-        except httpx.HTTPStatusError as e:
-            # Пытаемся получить JSON, но если не получится — используем текст
+        for attempt in range(3):  # Пробуем 3 раза
             try:
-                error_data = e.response.json()
-                # Если это словарь — извлекаем сообщение
-                if isinstance(error_data, dict):
-                    error_message = error_data.get("error", {}).get("message", str(e))
-                else:
-                    # Если JSON вернул не словарь (например, строку) — используем как есть
-                    error_message = str(error_data)
-            except Exception:
-                # Если вообще не JSON — берём текст ответа
-                error_message = e.response.text or str(e)
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    response = await client.post(self.base_url, json=payload, headers=self.headers)
+                    response.raise_for_status()
+                    return response.json()
 
-            raise Exception(f"Airtable API Error: {error_message}")
+            except (httpx.NetworkError, httpx.TimeoutException) as e:
+                if attempt == 2:  # Последняя попытка
+                    raise Exception(f"Airtable не отвечает после 3 попыток: {str(e)}")
+                logger.warning(f"Попытка {attempt + 1} не удалась, повтор через 1 сек: {e}")
+                await asyncio.sleep(1)  # Ждём перед повтором
 
-        except Exception as e:
-            raise Exception(f"Network error: {str(e)}")
+            except httpx.HTTPStatusError as e:
+                try:
+                    error_data = e.response.json()
+                    if isinstance(error_data, dict):
+                        error_message = error_data.get("error", {}).get("message", str(e))
+                    else:
+                        error_message = str(error_data)
+                except Exception:
+                    error_message = e.response.text or str(e)
+                raise Exception(f"Airtable API Error: {error_message}")
+
+            except Exception as e:
+                raise Exception(f"Неожиданная ошибка: {str(e)}")
