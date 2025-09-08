@@ -39,7 +39,7 @@ pip install -r requirements.txt
 ```bash
 python -m bot.main
 ```
-→ Бот запустится в режиме polling (если не задан WEBHOOK_HOST).
+Бот запустится в режиме polling (если не задан WEBHOOK_HOST).
 
 ## License
 This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
