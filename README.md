@@ -8,8 +8,8 @@ Telegram-бот для учёта покупок с сохранением в Ai
 ## Технологии
 
 - **Язык**: Python 3.11+
-- **Фреймворк**: aiogram 3.x (асинхронный)
-- **HTTP-клиент**: httpx (асинхронный)
+- **Фреймворк**: aiogram 3.x
+- **HTTP-клиент**: httpx
 - **Хранилище**: Airtable (через REST API)
 - **Конфигурация**: python-dotenv
 - **Логирование**: logging
@@ -39,9 +39,10 @@ pip install -r requirements.txt
 ```bash
 python -m bot.main
 ```
-→ Бот запустится в режиме polling (если не задан WEBHOOK_HOST).
+Бот запустится в режиме polling (если не задан WEBHOOK_HOST).
 
 ## License
 This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
+
 
 
