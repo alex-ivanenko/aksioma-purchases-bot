@@ -57,6 +57,9 @@ async def cmd_start(message: Message):
 # Обработчик кнопки "Добавить покупку"
 @router.message(F.text == "Добавить покупку")
 async def start_purchase_flow(message: Message, state: FSMContext):
+    if not is_authorized(message.from_user):
+        await message.answer("У вас нет доступа к этому действию!")
+        return
     await message.answer("Введите наименование:", reply_markup=cancel_kb)
     await state.set_state(PurchaseForm.name)
 
