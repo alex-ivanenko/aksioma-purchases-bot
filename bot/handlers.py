@@ -95,7 +95,7 @@ async def process_quantity(message: Message, state: FSMContext):
         return
 
     await state.update_data(quantity=quantity)
-    await message.answer("Введите примечание или нажмите 'Пропустить'", reply_markup=skip_cancel_kb)
+    await message.answer("Введите примечание или нажмите <b>Пропустить</b>:", reply_markup=skip_cancel_kb)
     await state.set_state(PurchaseForm.note)
     
 async def _save_data_and_finish(message: Message, state: FSMContext):
@@ -126,7 +126,7 @@ async def _save_data_and_finish(message: Message, state: FSMContext):
             f"<b>Количество:</b> {data['quantity']}\n"
             f"<b>Примечание:</b> {data['note']}\n"
             f"<b>Отправитель:</b> {data['sender_name']}\n\n"
-            f"Запись успешно добавлена в Airtable.",
+            f"Запись успешно добавлена в Airtable",
             reply_markup=main_kb
         )
 
