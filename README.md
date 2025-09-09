@@ -29,8 +29,8 @@ Telegram-бот для учёта покупок с сохранением в Ai
 ### 1. Клонируйте репозиторий
 
 ```bash
-git clone https://github.com/alex-ivanenko/aksioma_purchases_bot.git
-cd aksioma_purchases_bot
+git clone https://github.com/alex-ivanenko/aksioma-purchases-bot.git
+cd aksioma-purchases-bot
 ```
 ### 2. Создайте виртуальное окружение
 ```bash
