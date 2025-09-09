@@ -26,25 +26,25 @@ Telegram-бот для учёта покупок с сохранением в Ai
 - **Отправитель** (Single line text) - для имени пользователя Telegram.
 - **Дата создания** (Created time) - для даты и времени создания записи.
 
-### 1. Клонируй репозиторий
+### 1. Клонируйте репозиторий
 
 ```bash
 git clone https://github.com/alex-ivanenko/aksioma_purchases_bot.git
 cd aksioma_purchases_bot
 ```
-### 2. Создай виртуальное окружение
+### 2. Создайте виртуальное окружение
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Linux/macOS
 # или
 .venv\Scripts\activate     # Windows
 ```
-### 3. Установи зависимости
+### 3. Установите зависимости
 ```bash
 pip install -r requirements.txt
 ```
-### 4. Настрой .env
-Создай файл `.env` в корне проекта на основе `.env.example` и заполни его своими данными:
+### 4. Настройте .env
+Создайте файл `.env` в корне проекта на основе `.env.example` и заполните его своими данными:
 
 - `TELEGRAM_BOT_TOKEN`: Токен вашего бота, полученный от [@BotFather](https://t.me/BotFather) в Telegram.
 - `AIRTABLE_API_KEY`: Ваш персональный API-ключ от Airtable.
@@ -52,7 +52,7 @@ pip install -r requirements.txt
 - `AIRTABLE_TABLE_NAME`: Название или ID таблицы, в которую будут сохраняться записи.
 - `ALLOWED_USERS`: ID пользователей Telegram, которым разрешено использовать бота.
 
-### 5. Запусти бота
+### 5. Запустите бота
 ```bash
 python -m bot.main
 ```
