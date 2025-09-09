@@ -50,7 +50,7 @@ pip install -r requirements.txt
 - `AIRTABLE_API_KEY`: Ваш персональный API-ключ от Airtable.
 - `AIRTABLE_BASE_ID`: ID вашей базы в Airtable (обычно начинается с `app...`).
 - `AIRTABLE_TABLE_NAME`: Название или ID таблицы, в которую будут сохраняться записи.
-- `ALLOWED_USERS`: ID пользователей Telegram, которым разрешено использовать бота.
+- `AUTHORIZED_USERS`: ID пользователей Telegram, которым разрешено использовать бота.
 
 ### 5. Запустите бота
 ```bash
