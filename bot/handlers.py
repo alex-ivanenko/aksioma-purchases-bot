@@ -124,12 +124,11 @@ async def _save_data_and_finish(message: Message, state: FSMContext):
         })
 
         await message.answer(
-            f"Данные приняты:\n\n"
+            f"Запись добавлена:\n\n"
             f"<b>Наименование:</b> {data['name']}\n"
             f"<b>Количество:</b> {data['quantity']}\n"
             f"<b>Примечание:</b> {data['note']}\n"
-            f"<b>Отправитель:</b> {data['sender_name']}\n\n"
-            f"Запись успешно добавлена в Airtable",
+            f"<b>Отправитель:</b> {data['sender_name']}\n\n",
             reply_markup=main_kb
         )
 
