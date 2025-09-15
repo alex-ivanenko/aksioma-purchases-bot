@@ -1,0 +1,23 @@
+<service>
+  <id>aksioma-purchases-bot</id>
+  <name>Aksioma Purchases Bot</name>
+  <description>Telegram bot for tracking purchases via Airtable</description>
+  <startmode>Automatic</startmode>
+
+  <executable>C:\Projects\aksioma-purchases-bot\.venv\Scripts\python.exe</executable>
+  <arguments>"-m" "bot.main"</arguments>
+  <workingdirectory>C:\Projects\aksioma-purchases-bot</workingdirectory>
+
+  <logpath>C:\Projects\aksioma-purchases-bot\logs</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>5</keepFiles>
+  </log>
+  
+  <startmode>Automatic</startmode>
+
+  <onfailure action="restart" delay="10 sec" />
+  <onfailure action="restart" delay="10 sec" />
+  <onfailure action="restart" delay="10 sec" />
+  <onfailure action="none" />
+</service>
