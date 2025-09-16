@@ -1,3 +1,4 @@
+# Config for WinSW
 <service>
   <id>aksioma-purchases-bot</id>
   <name>Aksioma Purchases Bot</name>
@@ -16,10 +17,5 @@
   
   <startmode>Automatic</startmode>
 
-  <onfailure action="restart" delay="10 sec" />
-  <onfailure action="restart" delay="30 sec" />
   <onfailure action="restart" delay="1 min" />
-  <onfailure action="restart" delay="5 min" />
-  <onfailure action="restart" delay="10 min" />
-
 </service>
