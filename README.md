@@ -71,7 +71,7 @@ python -m bot.main
 
 ## Структура проекта
 ```text
-aksioma-payments-bot/
+aksioma-purchases-bot/
 ├── bot/                   # Основной код бота
 │   ├── main.py            # Точка входа
 │   ├── config.py          # Загрузка конфигурации
